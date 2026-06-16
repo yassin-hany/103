@@ -1,0 +1,45 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * Parameters for the Azure AI Search + Azure OpenAI deployment.
+     * Update both "searchServiceName" and "openAIAccountName" with
+     * globally unique names before deploying.
+     *
+     * After deployment, you still need to:
+     *   1. Create a search index (via Portal or SDK)
+     *   2. Populate it with documents
+     *   3. Set SEARCH_INDEX_NAME in .env to your index name
+     *
+     * Deploy with:
+     *   az deployment group create \
+     *     --resource-group <your-rg> \
+     *     --template-file deploy-search.json \
+     *     --parameters @deploy-search.parameters.json
+     */
+
+    "parameters": {
+        "searchServiceName": {
+            "value": "foundry-demo-search-cn"
+        },
+        "searchSku": {
+            "value": "basic"
+        },
+        "openAIAccountName": {
+            "value": "foundry-demo-openai-cn"
+        },
+        "openAIModelName": {
+            "value": "gpt-4.1"
+        },
+        "openAIModelVersion": {
+            "value": "2025-04-14"
+        },
+        "openAIDeploymentName": {
+            "value": "gpt-4-1"
+        },
+        "location": {
+            "value": "eastus2"
+        }
+    }
+}

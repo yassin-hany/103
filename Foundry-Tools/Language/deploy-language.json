@@ -1,0 +1,108 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * =========================================================================
+     *  AZURE AI LANGUAGE SERVICE — ARM TEMPLATE
+     * =========================================================================
+     *  Provisions an Azure AI Language resource for the foundry-language demo.
+     *
+     *  This service powers:
+     *    - Language detection (identify text language from 120+ languages)
+     *    - Key phrase extraction (pull important terms from text)
+     *    - Sentiment analysis (positive/negative/neutral classification)
+     *    - Named entity recognition (people, places, orgs, dates, etc.)
+     *
+     *  After deployment, copy the endpoint URL from the outputs and paste it
+     *  into the .env file as LANGUAGE_ENDPOINT.
+     *
+     *  RBAC: The user running the notebook needs the role
+     *  "Cognitive Services Language Reader" or "Cognitive Services User"
+     *  on this resource. The template creates the resource — you assign
+     *  the role via the Portal or CLI after deployment.
+     *
+     *  Deploy with:
+     *    az deployment group create \
+     *      --resource-group <your-rg> \
+     *      --template-file deploy-language.json \
+     *      --parameters @deploy-language.parameters.json
+     * =========================================================================
+     */
+
+    "parameters": {
+        "accountName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "metadata": {
+                "description": "Name for the Azure AI Language resource. Must be unique within the resource group. Becomes part of the endpoint URL."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Azure region. Choose a region that supports Azure AI Language (most regions do). See https://learn.microsoft.com/azure/ai-services/language-service/overview#regional-availability"
+            }
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "S",
+            "allowedValues": ["F0", "S"],
+            "metadata": {
+                "description": "Pricing tier. F0 = free (5K text records/month). S = standard (pay-per-use). Only one F0 per subscription is allowed."
+            }
+        }
+    },
+
+    "resources": [
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE AI LANGUAGE RESOURCE
+         *  Resource type: Microsoft.CognitiveServices/accounts
+         *  Kind: "TextAnalytics" — this is the internal kind for the
+         *  Azure AI Language service (formerly Text Analytics).
+         *
+         *  The custom subdomain name is set to the account name, which
+         *  gives us a clean endpoint like:
+         *    https://<accountName>.cognitiveservices.azure.com/
+         *
+         *  Public network access is enabled for demo purposes. In
+         *  production, consider using private endpoints.
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('accountName')]",
+            "location": "[parameters('location')]",
+            "kind": "TextAnalytics",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[parameters('accountName')]",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        }
+    ],
+
+    "outputs": {
+        "languageEndpoint": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))).endpoint]",
+            "metadata": {
+                "description": "Paste this value into .env as LANGUAGE_ENDPOINT"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+        }
+    }
+}

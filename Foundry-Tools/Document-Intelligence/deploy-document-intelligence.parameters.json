@@ -1,0 +1,27 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * Parameters for the Azure AI Document Intelligence deployment.
+     * Update "accountName" with a globally unique name before deploying.
+     *
+     * Deploy with:
+     *   az deployment group create \
+     *     --resource-group <your-rg> \
+     *     --template-file deploy-document-intelligence.json \
+     *     --parameters @deploy-document-intelligence.parameters.json
+     */
+
+    "parameters": {
+        "accountName": {
+            "value": "foundry-demo-doc-intel"
+        },
+        "location": {
+            "value": "eastus2"
+        },
+        "sku": {
+            "value": "S0"
+        }
+    }
+}

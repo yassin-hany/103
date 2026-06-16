@@ -1,0 +1,44 @@
+Northwind Electronics — Product FAQ
+=====================================
+
+Q: What products does Northwind Electronics manufacture?
+A: Northwind Electronics manufactures consumer and commercial electronics
+   including smart home hubs, wireless speakers, portable power stations,
+   and industrial IoT sensor modules.
+
+Q: What is the standard warranty period?
+A: All Northwind Electronics products come with a 2-year limited warranty
+   from the date of purchase. The warranty covers manufacturing defects
+   and component failures under normal use conditions.
+
+Q: Does the warranty cover accidental damage?
+A: No. The standard warranty does not cover accidental damage, water damage,
+   unauthorized modifications, or damage caused by use outside the product's
+   rated specifications. Extended protection plans that include accidental
+   damage coverage are available for purchase separately.
+
+Q: How do I file a warranty claim?
+A: Contact Northwind Electronics support at support@northwindelectronics.com
+   with your proof of purchase and a description of the issue. A support
+   representative will respond within 2 business days with a Return
+   Merchandise Authorization (RMA) number and shipping instructions.
+
+Q: What is the return policy for unused products?
+A: Unopened products may be returned within 30 days of purchase for a full
+   refund. Opened products in original condition may be returned within
+   14 days for a refund minus a 15% restocking fee.
+
+Q: Are replacement parts available for purchase?
+A: Yes. Replacement batteries, power adapters, mounting brackets, and sensor
+   modules are available through the Northwind Electronics parts store.
+   Parts orders typically ship within 3 business days.
+
+Q: What payment methods are accepted?
+A: Northwind Electronics accepts Visa, Mastercard, American Express, bank
+   transfers, and purchase orders for commercial accounts with approved
+   credit terms.
+
+Q: Does Northwind Electronics offer volume discounts?
+A: Yes. Orders of 50 or more units qualify for tiered volume pricing.
+   Contact the commercial sales team at sales@northwindelectronics.com
+   for a custom quote.

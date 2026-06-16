@@ -1,0 +1,115 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * =========================================================================
+     *  AZURE AI DOCUMENT INTELLIGENCE — ARM TEMPLATE
+     * =========================================================================
+     *  Provisions an Azure AI Document Intelligence resource for the
+     *  foundry-document-intelligence demo.
+     *
+     *  This service powers:
+     *    - General text extraction from PDFs, images, and scanned documents
+     *      (prebuilt-read model)
+     *    - Invoice data extraction — vendor, invoice ID, totals, dates
+     *      (prebuilt-invoice model)
+     *    - Receipt data extraction — merchant, total, transaction date
+     *      (prebuilt-receipt model)
+     *    - Handwritten text detection with confidence scoring
+     *      (prebuilt-read model with style analysis)
+     *
+     *  The notebook uses publicly hosted sample documents from Microsoft's
+     *  documentation, so no local files need to be uploaded.
+     *
+     *  After deployment, copy the endpoint URL from the outputs and paste it
+     *  into the .env file as DOCUMENT_INTELLIGENCE_ENDPOINT.
+     *
+     *  RBAC: The user running the notebook needs the
+     *  "Cognitive Services User" role on this resource.
+     *
+     *  Deploy with:
+     *    az deployment group create \
+     *      --resource-group <your-rg> \
+     *      --template-file deploy-document-intelligence.json \
+     *      --parameters @deploy-document-intelligence.parameters.json
+     * =========================================================================
+     */
+
+    "parameters": {
+        "accountName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "metadata": {
+                "description": "Name for the Azure AI Document Intelligence resource. Must be globally unique — becomes the custom subdomain."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Azure region. Document Intelligence is available in select regions. Common choices: eastus, westus2, westeurope. See https://learn.microsoft.com/azure/ai-services/document-intelligence/overview#regional-availability"
+            }
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "S0",
+            "allowedValues": ["F0", "S0"],
+            "metadata": {
+                "description": "Pricing tier. F0 = free (500 pages/month, prebuilt models only). S0 = standard (pay-per-page). Only one F0 per subscription."
+            }
+        }
+    },
+
+    "resources": [
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE AI DOCUMENT INTELLIGENCE RESOURCE
+         *  Kind: "FormRecognizer" — this is the internal kind for
+         *  Document Intelligence (formerly called Form Recognizer).
+         *  The service was renamed but the ARM resource kind has not
+         *  changed, so we use "FormRecognizer" here.
+         *
+         *  The custom subdomain creates a stable endpoint like:
+         *    https://<accountName>.cognitiveservices.azure.com/
+         *
+         *  The notebook then calls endpoints like:
+         *    https://<accountName>.cognitiveservices.azure.com/
+         *      documentintelligence/documentModels/prebuilt-read:analyze
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('accountName')]",
+            "location": "[parameters('location')]",
+            "kind": "FormRecognizer",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[parameters('accountName')]",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        }
+    ],
+
+    "outputs": {
+        "documentIntelligenceEndpoint": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))).endpoint]",
+            "metadata": {
+                "description": "Paste this value into .env as DOCUMENT_INTELLIGENCE_ENDPOINT"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+        }
+    }
+}

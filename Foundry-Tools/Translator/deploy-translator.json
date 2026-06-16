@@ -1,0 +1,120 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * =========================================================================
+     *  AZURE AI TRANSLATOR — ARM TEMPLATE
+     * =========================================================================
+     *  Provisions an Azure AI Translator resource for the foundry-translator demo.
+     *
+     *  This service powers:
+     *    - Single-language translation (e.g., English → French)
+     *    - Multi-language translation in one call (e.g., English → Spanish,
+     *      German, Japanese, Portuguese simultaneously)
+     *    - Automatic language detection with confidence scoring
+     *
+     *  IMPORTANT: The notebook uses REST API calls with Entra ID bearer
+     *  tokens (not the Python SDK), because the Translator Python SDK
+     *  does not support Entra ID auth directly. A custom subdomain is
+     *  required for this authentication method.
+     *
+     *  After deployment, copy the endpoint and region from the outputs
+     *  and paste them into the .env file as TRANSLATOR_ENDPOINT and
+     *  TRANSLATOR_REGION.
+     *
+     *  RBAC: The user running the notebook needs the
+     *  "Cognitive Services User" role on this resource.
+     *
+     *  Deploy with:
+     *    az deployment group create \
+     *      --resource-group <your-rg> \
+     *      --template-file deploy-translator.json \
+     *      --parameters @deploy-translator.parameters.json
+     * =========================================================================
+     */
+
+    "parameters": {
+        "accountName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "metadata": {
+                "description": "Name for the Azure AI Translator resource. Must be globally unique — it becomes the custom subdomain in the endpoint URL."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Azure region. This value is also used as TRANSLATOR_REGION in the .env file. The Translator service is available in most Azure regions."
+            }
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "S1",
+            "allowedValues": ["F0", "S1"],
+            "metadata": {
+                "description": "Pricing tier. F0 = free (2M characters/month). S1 = standard (pay-per-character). Only one F0 per subscription."
+            }
+        }
+    },
+
+    "resources": [
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE AI TRANSLATOR RESOURCE
+         *  Kind: "TextTranslation" — the dedicated text translation service.
+         *
+         *  The custom subdomain is essential here because the notebook uses
+         *  Entra ID tokens for REST API calls. Without a custom subdomain,
+         *  Translator uses the global endpoint (api.cognitive.microsofttranslator.com)
+         *  which requires API key auth.
+         *
+         *  With the custom subdomain, the endpoint becomes:
+         *    https://<accountName>.cognitiveservices.azure.com/
+         *  and the translation URL used in the notebook is:
+         *    https://<accountName>.cognitiveservices.azure.com/translator/text/v3.0/translate
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('accountName')]",
+            "location": "[parameters('location')]",
+            "kind": "TextTranslation",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[parameters('accountName')]",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        }
+    ],
+
+    "outputs": {
+        "translatorEndpoint": {
+            "type": "string",
+            "value": "[concat('https://', parameters('accountName'), '.cognitiveservices.azure.com/')]",
+            "metadata": {
+                "description": "Paste this value into .env as TRANSLATOR_ENDPOINT. NOTE: The Translator service reports its endpoint as the global URL (api.cognitive.microsofttranslator.com), but Entra ID auth requires the custom-domain endpoint shown here."
+            }
+        },
+        "translatorRegion": {
+            "type": "string",
+            "value": "[parameters('location')]",
+            "metadata": {
+                "description": "Paste this value into .env as TRANSLATOR_REGION"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]"
+        }
+    }
+}

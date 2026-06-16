@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * Parameters for the Azure AI Speech deployment.
+     * Update "accountName" with a globally unique name before deploying.
+     * The "location" value will also be used as SPEECH_REGION in .env.
+     *
+     * Deploy with:
+     *   az deployment group create \
+     *     --resource-group <your-rg> \
+     *     --template-file deploy-speech.json \
+     *     --parameters @deploy-speech.parameters.json
+     */
+
+    "parameters": {
+        "accountName": {
+            "value": "foundry-demo-speech"
+        },
+        "location": {
+            "value": "eastus2"
+        },
+        "sku": {
+            "value": "S0"
+        }
+    }
+}

@@ -1,0 +1,41 @@
+orderID,drink,size,price,quantity,day
+D001,Espresso,Small,3.50,2,Monday
+D002,Cappuccino,Medium,4.75,1,Monday
+D003,Iced Latte,Large,5.90,3,Monday
+D004,Matcha Latte,Medium,5.50,1,Monday
+D005,Americano,Small,3.25,4,Monday
+D006,Mocha,Large,6.10,2,Tuesday
+D007,Flat White,Medium,4.80,1,Tuesday
+D008,Chai Latte,Large,5.60,2,Tuesday
+D009,Espresso,Small,3.50,5,Tuesday
+D010,Cold Brew,Large,5.25,3,Tuesday
+D011,Cappuccino,Small,3.95,2,Wednesday
+D012,Iced Latte,Medium,5.20,4,Wednesday
+D013,Americano,Large,4.50,1,Wednesday
+D014,Mocha,Medium,5.40,3,Wednesday
+D015,Matcha Latte,Large,6.25,2,Wednesday
+D016,Espresso,Small,3.50,6,Thursday
+D017,Flat White,Large,5.60,2,Thursday
+D018,Cold Brew,Medium,4.75,3,Thursday
+D019,Chai Latte,Small,4.10,1,Thursday
+D020,Cappuccino,Large,5.50,4,Thursday
+D021,Iced Latte,Small,4.25,2,Friday
+D022,Mocha,Large,6.10,5,Friday
+D023,Americano,Medium,3.80,3,Friday
+D024,Matcha Latte,Small,4.50,2,Friday
+D025,Espresso,Medium,4.00,7,Friday
+D026,Cold Brew,Large,5.25,4,Saturday
+D027,Cappuccino,Medium,4.75,6,Saturday
+D028,Flat White,Small,3.90,3,Saturday
+D029,Chai Latte,Large,5.60,2,Saturday
+D030,Iced Latte,Large,5.90,5,Saturday
+D031,Mocha,Small,4.40,2,Saturday
+D032,Americano,Large,4.50,3,Saturday
+D033,Espresso,Small,3.50,8,Sunday
+D034,Matcha Latte,Medium,5.50,3,Sunday
+D035,Cappuccino,Large,5.50,5,Sunday
+D036,Cold Brew,Medium,4.75,4,Sunday
+D037,Iced Latte,Medium,5.20,6,Sunday
+D038,Flat White,Large,5.60,2,Sunday
+D039,Mocha,Medium,5.40,3,Sunday
+D040,Chai Latte,Small,4.10,2,Sunday

@@ -1,0 +1,121 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * =========================================================================
+     *  AZURE AI SPEECH — ARM TEMPLATE
+     * =========================================================================
+     *  Provisions an Azure AI Speech resource for the foundry-speech demo.
+     *
+     *  This service powers:
+     *    - Text-to-Speech (TTS) with neural voices
+     *    - Speech Synthesis Markup Language (SSML) for fine-grained control
+     *    - Speech-to-Text (STT) transcription
+     *
+     *  IMPORTANT: The notebook uses Microsoft Entra ID (token-based) auth,
+     *  which requires a CUSTOM DOMAIN endpoint. This template sets the
+     *  customSubDomainName automatically, giving you an endpoint like:
+     *    https://<accountName>.cognitiveservices.azure.com/
+     *
+     *  If you used a standard Speech resource without a custom domain,
+     *  the endpoint would be regional (e.g., https://eastus.api.cognitive.microsoft.com)
+     *  and Entra ID auth would NOT work. This template avoids that pitfall.
+     *
+     *  After deployment, copy the endpoint and region from the outputs
+     *  and paste them into the .env file as SPEECH_ENDPOINT and SPEECH_REGION.
+     *
+     *  RBAC: The user running the notebook needs the
+     *  "Cognitive Services Speech User" role on this resource.
+     *
+     *  Deploy with:
+     *    az deployment group create \
+     *      --resource-group <your-rg> \
+     *      --template-file deploy-speech.json \
+     *      --parameters @deploy-speech.parameters.json
+     * =========================================================================
+     */
+
+    "parameters": {
+        "accountName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "metadata": {
+                "description": "Name for the Azure AI Speech resource. This becomes the custom subdomain, so it must be globally unique across all Cognitive Services accounts."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Azure region. This value is also used as SPEECH_REGION in the .env file. Choose a region that supports neural TTS voices — most regions do."
+            }
+        },
+        "sku": {
+            "type": "string",
+            "defaultValue": "S0",
+            "allowedValues": ["F0", "S0"],
+            "metadata": {
+                "description": "Pricing tier. F0 = free (5 hours TTS, 5 hours STT/month). S0 = standard (pay-per-use). Only one F0 per subscription."
+            }
+        }
+    },
+
+    "resources": [
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE AI SPEECH RESOURCE
+         *  Kind: "SpeechServices" — the dedicated speech service.
+         *
+         *  The custom subdomain is critical here. Without it, the resource
+         *  gets a regional endpoint that does not support Entra ID auth.
+         *  The notebook obtains a bearer token via DefaultAzureCredential
+         *  and passes it as auth_token to the Speech SDK's SpeechConfig,
+         *  which only works with custom-domain endpoints.
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('accountName')]",
+            "location": "[parameters('location')]",
+            "kind": "SpeechServices",
+            "sku": {
+                "name": "[parameters('sku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[parameters('accountName')]",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        }
+    ],
+
+    "outputs": {
+        "speechEndpoint": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))).endpoint]",
+            "metadata": {
+                "description": "Paste this value into .env as SPEECH_ENDPOINT"
+            }
+        },
+        "speechRegion": {
+            "type": "string",
+            "value": "[parameters('location')]",
+            "metadata": {
+                "description": "Paste this value into .env as SPEECH_REGION"
+            }
+        },
+        "resourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accountName'))]",
+            "metadata": {
+                "description": "Paste this value into .env as SPEECH_RESOURCE_ID (required for Entra ID auth with the Speech SDK)"
+            }
+        }
+    }
+}

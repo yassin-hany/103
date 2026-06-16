@@ -1,0 +1,78 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+      "title": "Bored Activity API",
+      "description": "Suggests random activities filtered by category.",
+      "version": "v1.0.0"
+    },
+    "servers": [
+      {
+        "url": "https://bored-api.appbrewery.com"
+      }
+    ],
+    "security": [],
+    "paths": {
+      "/filter": {
+        "get": {
+          "description": "Get a list of activity suggestions filtered by category. Only one filter parameter should be used per request.",
+          "operationId": "FilterActivities",
+          "parameters": [
+            {
+              "name": "type",
+              "in": "query",
+              "description": "The category of activity. Must be one of: education, recreational, social, charity, cooking, relaxation, busywork, diy, music",
+              "required": true,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response containing a list of matching activities",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "activity": {
+                          "type": "string",
+                          "description": "Description of the activity"
+                        },
+                        "type": {
+                          "type": "string",
+                          "description": "Category of the activity"
+                        },
+                        "participants": {
+                          "type": "integer",
+                          "description": "Number of people needed"
+                        },
+                        "price": {
+                          "type": "number",
+                          "description": "Relative cost from 0 (free) to 1 (expensive)"
+                        },
+                        "duration": {
+                          "type": "string",
+                          "description": "How long the activity takes (e.g. minutes, hours, days)"
+                        },
+                        "kidFriendly": {
+                          "type": "boolean",
+                          "description": "Whether the activity is suitable for children"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "deprecated": false
+        }
+      }
+    },
+    "components": {
+      "securitySchemes": {}
+    }
+  }

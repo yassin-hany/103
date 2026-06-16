@@ -1,0 +1,250 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * =========================================================================
+     *  AZURE AI SEARCH + AZURE OPENAI — ARM TEMPLATE
+     * =========================================================================
+     *  Provisions the infrastructure for the foundry-search demo:
+     *    1. Azure AI Search service (for full-text search and filtering)
+     *    2. Azure OpenAI resource with a GPT model deployment (for RAG)
+     *
+     *  The foundry-search notebook demonstrates:
+     *    - Full-text search with relevance scoring
+     *    - Filtered search with OData filters
+     *    - Retrieval Augmented Generation (RAG) — the model searches the
+     *      index for relevant documents, then answers based on them
+     *
+     *  IMPORTANT — WHAT THIS TEMPLATE DOES NOT DO:
+     *  ARM templates handle control-plane provisioning (creating services).
+     *  You still need to create a search INDEX and populate it with
+     *  documents after deployment. This is a data-plane operation done via:
+     *    - Azure Portal → AI Search → Import data wizard
+     *    - Azure SDK (azure-search-documents)
+     *    - REST API
+     *
+     *  After deployment:
+     *    1. Copy the outputs into your .env file
+     *    2. Create a search index and import sample data
+     *    3. Update SEARCH_INDEX_NAME in .env with your index name
+     *
+     *  RBAC requirements:
+     *    - "Search Service Contributor" on the AI Search resource (to create indexes)
+     *    - "Search Index Data Contributor" on the AI Search resource (to upload docs)
+     *    - "Search Index Data Reader" on the AI Search resource (to query)
+     *    - "Cognitive Services OpenAI User" on the Azure OpenAI resource
+     *
+     *  Deploy with:
+     *    az deployment group create \
+     *      --resource-group <your-rg> \
+     *      --template-file deploy-search.json \
+     *      --parameters @deploy-search.parameters.json
+     * =========================================================================
+     */
+
+    "parameters": {
+        "searchServiceName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 60,
+            "metadata": {
+                "description": "Name for the Azure AI Search service. Must be globally unique — becomes part of the endpoint URL (https://<name>.search.windows.net)."
+            }
+        },
+        "searchSku": {
+            "type": "string",
+            "defaultValue": "basic",
+            "allowedValues": ["free", "basic", "standard", "standard2", "standard3"],
+            "metadata": {
+                "description": "Search pricing tier. 'basic' or higher is required for the semantic ranker used in this lab; 'free' supports only keyword/vector search."
+            }
+        },
+        "openAIAccountName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64,
+            "metadata": {
+                "description": "Name for the Azure OpenAI resource. Must be globally unique — becomes the custom subdomain."
+            }
+        },
+        "openAIModelName": {
+            "type": "string",
+            "defaultValue": "gpt-4.1",
+            "metadata": {
+                "description": "The OpenAI model to deploy (e.g., gpt-4.1, gpt-4o). This must be available in your selected region."
+            }
+        },
+        "openAIModelVersion": {
+            "type": "string",
+            "defaultValue": "2025-04-14",
+            "metadata": {
+                "description": "Model version string. Check available versions in the Azure OpenAI model catalog for your region."
+            }
+        },
+        "openAIDeploymentName": {
+            "type": "string",
+            "defaultValue": "gpt-4-1",
+            "metadata": {
+                "description": "Name for the model deployment. This is what you put in .env as AZURE_OPENAI_DEPLOYMENT."
+            }
+        },
+        "openAISku": {
+            "type": "string",
+            "defaultValue": "S0",
+            "allowedValues": ["S0"],
+            "metadata": {
+                "description": "Azure OpenAI pricing tier. Currently only S0 is available."
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "Azure region for both resources. Choose a region that supports Azure OpenAI (e.g., eastus, eastus2, westus, swedencentral)."
+            }
+        }
+    },
+
+    "resources": [
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE AI SEARCH SERVICE
+         *  The search service hosts indexes that store and query documents.
+         *
+         *  This demo uses the "basic" tier: the semantic ranker
+         *  (query_type="semantic" in the notebook) requires Basic or higher
+         *  and is NOT available on the free search tier. Free supports only
+         *  keyword/vector queries (3 indexes, 50MB).
+         *
+         *  "semanticSearch": "free" below selects the free semantic *plan*
+         *  (a monthly query quota), available on Basic and above.
+         *
+         *  authOptions is set to "aadOrApiKey" so that the notebook can
+         *  authenticate with DefaultAzureCredential (Entra ID). Without
+         *  this, the service defaults to API-key-only authentication.
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.Search/searchServices",
+            "apiVersion": "2024-06-01-preview",
+            "name": "[parameters('searchServiceName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "[parameters('searchSku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "replicaCount": 1,
+                "partitionCount": 1,
+                "hostingMode": "default",
+                "semanticSearch": "free",
+                "publicNetworkAccess": "enabled",
+                "authOptions": {
+                    "aadOrApiKey": {
+                        "aadAuthFailureMode": "http401WithBearerChallenge"
+                    }
+                }
+            }
+        },
+
+        /*
+         * -----------------------------------------------------------------
+         *  AZURE OPENAI RESOURCE
+         *  Hosts the GPT model used for the RAG (Retrieval Augmented
+         *  Generation) step in the notebook.
+         *
+         *  The notebook sends search results as context to this model,
+         *  which then synthesizes a natural-language answer.
+         *
+         *  The custom subdomain creates an endpoint like:
+         *    https://<openAIAccountName>.openai.azure.com/
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2024-10-01",
+            "name": "[parameters('openAIAccountName')]",
+            "location": "[parameters('location')]",
+            "kind": "OpenAI",
+            "sku": {
+                "name": "[parameters('openAISku')]"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "customSubDomainName": "[parameters('openAIAccountName')]",
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        },
+
+        /*
+         * -----------------------------------------------------------------
+         *  MODEL DEPLOYMENT
+         *  Deploys the specified GPT model inside the Azure OpenAI resource.
+         *
+         *  The deployment name is what the notebook uses as the "model"
+         *  parameter when calling the OpenAI API. Standard deployment type
+         *  provides dedicated throughput.
+         *
+         *  capacity = 10 means 10K tokens per minute (TPM) — sufficient
+         *  for demo workloads. Increase for production.
+         * -----------------------------------------------------------------
+         */
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2024-10-01",
+            "name": "[concat(parameters('openAIAccountName'), '/', parameters('openAIDeploymentName'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('openAIAccountName'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "capacity": 10
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "[parameters('openAIModelName')]",
+                    "version": "[parameters('openAIModelVersion')]"
+                }
+            }
+        }
+    ],
+
+    "outputs": {
+        "searchEndpoint": {
+            "type": "string",
+            "value": "[concat('https://', parameters('searchServiceName'), '.search.windows.net')]",
+            "metadata": {
+                "description": "Paste this value into .env as SEARCH_ENDPOINT"
+            }
+        },
+        "openAIEndpoint": {
+            "type": "string",
+            "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', parameters('openAIAccountName'))).endpoint]",
+            "metadata": {
+                "description": "Paste this value into .env as AZURE_OPENAI_ENDPOINT"
+            }
+        },
+        "openAIDeploymentName": {
+            "type": "string",
+            "value": "[parameters('openAIDeploymentName')]",
+            "metadata": {
+                "description": "Paste this value into .env as AZURE_OPENAI_DEPLOYMENT"
+            }
+        },
+        "searchServiceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Search/searchServices', parameters('searchServiceName'))]"
+        },
+        "openAIResourceId": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('openAIAccountName'))]"
+        }
+    }
+}

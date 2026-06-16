@@ -1,0 +1,28 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+
+    /*
+     * Parameters for the Azure AI Translator deployment.
+     * Update "accountName" with a globally unique name before deploying.
+     * The "location" value will also be used as TRANSLATOR_REGION in .env.
+     *
+     * Deploy with:
+     *   az deployment group create \
+     *     --resource-group <your-rg> \
+     *     --template-file deploy-translator.json \
+     *     --parameters @deploy-translator.parameters.json
+     */
+
+    "parameters": {
+        "accountName": {
+            "value": "foundry-demo-translator"
+        },
+        "location": {
+            "value": "eastus2"
+        },
+        "sku": {
+            "value": "S1"
+        }
+    }
+}

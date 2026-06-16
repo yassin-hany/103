@@ -1,0 +1,69 @@
+Northwind Electronics — Technical Support Guide
+=================================================
+
+Smart Home Hub Troubleshooting
+
+1.1 Hub does not power on
+    - Verify the power adapter is firmly connected to both the hub and the
+      wall outlet.
+    - Try a different wall outlet to rule out a dead circuit.
+    - If the LED indicator does not light up at all, the power adapter may
+      be defective. Contact support for a replacement adapter.
+
+1.2 Hub loses Wi-Fi connection frequently
+    - Ensure the hub is within 10 meters of your wireless router.
+    - Check that your router firmware is up to date.
+    - Avoid placing the hub near microwave ovens, cordless phones, or other
+      devices that operate on the 2.4 GHz band.
+    - If the issue persists, perform a factory reset by holding the reset
+      button for 10 seconds, then reconnect to your network.
+
+1.3 Hub does not discover connected devices
+    - Confirm that all devices are on the same local network as the hub.
+    - Restart the hub by unplugging it for 30 seconds, then plugging it
+      back in.
+    - Check that device firmware is current using the Northwind companion
+      app under Settings > Device Updates.
+
+Wireless Speaker Troubleshooting
+
+2.1 No audio output
+    - Verify the speaker is charged (LED should show solid green).
+    - Confirm Bluetooth pairing: open your device's Bluetooth settings and
+      check that "NW-Speaker" appears as connected.
+    - If paired but silent, check the volume level on both the speaker and
+      the source device.
+
+2.2 Audio distortion or crackling
+    - Move the speaker closer to the paired device to improve the Bluetooth
+      signal.
+    - Reduce the source volume to 80% or lower — distortion at maximum
+      volume indicates the source signal is clipping.
+    - If distortion occurs at all volume levels, perform a firmware update
+      through the Northwind companion app.
+
+Portable Power Station Troubleshooting
+
+3.1 Power station does not charge
+    - Use only the included 65W USB-C charger. Third-party chargers below
+      45W will not charge the unit.
+    - Check the charging port for debris and clean with compressed air if
+      needed.
+    - If the battery indicator flashes red, the internal temperature may be
+      too high. Allow the unit to cool for 30 minutes before retrying.
+
+3.2 Connected devices do not receive power
+    - Verify the output port is enabled: press the power button once to
+      cycle through DC, USB-A, and USB-C outputs.
+    - Check that the connected device does not exceed the rated output
+      (500W continuous, 1000W peak).
+    - If the power station shuts down under load, the overcurrent protection
+      has triggered. Disconnect the device and check its power draw.
+
+Contacting Support
+
+For issues not resolved by this guide, contact Northwind Electronics support:
+    - Email: support@northwindelectronics.com
+    - Phone: 1-800-555-0199 (Monday through Friday, 8 AM to 6 PM ET)
+    - Live chat: available at northwindelectronics.com/support
+    - Include your product serial number and a description of the issue.
